@@ -31,7 +31,7 @@ def build_html_file(lines)
   [
     "<html>",
     "<body>",
-    "<h1>Open Changesets</h1>",
+    "<h1>Open Changesets for #{Date.today}</h1>",
     "<ul>",
     lines.join("\n"),
     "</ul>",
