@@ -35,20 +35,28 @@ def fetch_account_name(hash, users_lookup_hash)
   return users_lookup_hash[account_id] = result["name"]
 end
 
-def build_curl_command_for_account(account_id)
+def build_curl_command_base
   [
     "curl --silent --digest --user",
     "#{ENV["GERRITUSER"]}:#{ENV["GERRITHTTPPASSWORD"]}",
-    "https://#{ENV["GERRITDOMAIN"]}/a/accounts/#{account_id}"
+    "https://#{ENV["GERRITDOMAIN"]}/a/"
   ].join(" ")
+end
+
+def build_curl_command_for_account(account_id)
+  [
+    build_curl_command_base,
+    "accounts/",
+    account_id
+  ].join("")
 end
 
 def build_curl_command_for_changesets
   [
-    "curl --silent --digest --user",
-    "#{ENV["GERRITUSER"]}:#{ENV["GERRITHTTPPASSWORD"]}",
-    "https://#{ENV["GERRITDOMAIN"]}/a/changes/\?q\=status:open+project:#{ARGV[0]}"
-  ].join(" ")
+    build_curl_command_base,
+    "changes/\?q\=status:open+project:",
+    ARGV[0]
+  ].join("")
 end
 
 def execute(curl_command)
