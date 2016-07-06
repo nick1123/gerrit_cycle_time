@@ -4,7 +4,7 @@
 
     export GERRITDOMAIN='gerrit.YOUR-COMPANY.com'
     export GERRITUSER='abc...'
-    export GERRITHTTPPASSWORD='xyz..."
+    export GERRITHTTPPASSWORD='xyz...'
 
 Note: Your Gerrit http password is generated for you in gerrit's
 settings
