@@ -19,15 +19,10 @@ def anchor_tag(hash)
   "<a href='#{url}' target='_blank'>#{name}</a>"
 end
 
-def days_old_message(hash)
-  date = hash['created'][0,10]
-  (Date.today - Date.parse(date)).floor.to_s + " Days Old"
-end
-
 def transform_changeset_hash_to_html_tr(hash)
   wrap_in_a_tr(
     [
-      wrap_in_a_td(days_old_message(hash)),
+      wrap_in_a_td("#{hash['days_old']} Days Old"),
       wrap_in_a_td(hash["user_name"]),
       wrap_in_a_td(hash["project"]),
       wrap_in_a_td(anchor_tag(hash)),
@@ -41,11 +36,11 @@ def transform_array_to_table(changesets)
   )
 end
 
-def build_html_file(html_table)
+def build_html_file(html_table, max_days_old)
   [
     "<html>",
     "<body>",
-    "<h1>Open Changesets for #{Date.today}</h1>",
+    "<h1>Open Changesets for #{Date.today} (Up to #{max_days_old} days back)</h1>",
     html_table,
     "</body>",
     "</html>"
@@ -98,15 +93,26 @@ def sort_by_created(changesets)
   changesets.sort {|hash1, hash2| hash1['created'] <=> hash2['created']}
 end
 
-def add_user_name_to_change_sets!(sorted_change_sets, members_hash)
-  sorted_change_sets.each do |change_set|
+def add_user_name_to_change_sets!(change_sets, members_hash)
+  change_sets.each do |change_set|
     account_id = change_set["owner"]["_account_id"]
     change_set["user_name"] = members_hash[account_id]
   end
 end
 
+def add_days_old_to_change_sets!(change_sets)
+  change_sets.each do |change_set|
+    date = change_set['created'][0,10]
+    change_set["days_old"] = (Date.today - Date.parse(date)).floor
+  end
+end
+
 def remove_nil_users(change_sets)
   change_sets.reject {|change_set| change_set["user_name"].nil? }
+end
+
+def remove_old_change_sets(change_sets, max_days_old)
+  change_sets.reject {|change_set| change_set["days_old"] > max_days_old }
 end
 
 group_name = ARGV[1]
@@ -148,12 +154,23 @@ sorted_change_sets = sort_by_created(change_sets)
 
 add_user_name_to_change_sets!(sorted_change_sets, members_hash)
 
-filtered_change_sets = remove_nil_users(sorted_change_sets)
+add_days_old_to_change_sets!(change_sets)
+
+max_days_old = ARGV[2].to_i
+max_days_old = 10_000 if max_days_old == 0
+
+filtered_change_sets = remove_nil_users(
+  remove_old_change_sets(
+    sorted_change_sets,
+    max_days_old
+  )
+)
 
 html_contents = build_html_file(
   transform_array_to_table(
     filtered_change_sets
-  )
+  ),
+  max_days_old
 )
 
 File.open("open_changesets.html", "w") do |file_handle|
