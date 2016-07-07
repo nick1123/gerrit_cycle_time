@@ -79,11 +79,11 @@ def build_curl_command_for_changesets(project_name)
   ].join("")
 end
 
-def execute(curl_command)
+def execute_curl(curl_command)
   `#{curl_command}`
 end
 
-def transform_json_to_array(raw_changeset_string)
+def json_parse(raw_changeset_string)
   JSON.parse(
     raw_changeset_string.sub(")]}'", '')
   )
@@ -117,8 +117,8 @@ end
 
 group_name = ARGV[1]
 
-groups = transform_json_to_array(
-  execute(
+groups = json_parse(
+  execute_curl(
     build_curl_command_for_groups
   )
 )
@@ -127,8 +127,8 @@ group_data = groups[group_name]
 
 group_id = group_data["id"]
 
-group_members = transform_json_to_array(
-  execute(
+group_members = json_parse(
+  execute_curl(
     build_curl_command_for_group_members(
       group_id
     )
@@ -141,8 +141,8 @@ group_members.each {|gm| members_hash[gm["_account_id"]] = gm["name"] }
 project_names = ARGV[0].split(',')
 
 change_sets = project_names.map do |project_name|
-  transform_json_to_array(
-    execute(
+  json_parse(
+    execute_curl(
       build_curl_command_for_changesets(
         project_name
       )
