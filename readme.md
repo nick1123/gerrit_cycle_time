@@ -11,6 +11,9 @@ settings
 
 ## Run it
 
-    ruby runner.rb project_name
+    ruby runner.rb project_name1,project_name1 group_name
+
+Note: project names and group name are case-sensitive!
 
 Creates a `open_changesets.html` file.
+
